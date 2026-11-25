@@ -1,6 +1,39 @@
-# Jarkom Modul 5 2026 — Kelompok K-37
+# Jarkom-Modul-5-2026-K-37
 
-Operation Geofront: VLSM, routing statis, NAT, dan firewall di GNS3.
+| Nama | NRP |
+|:---:|:---:|
+| Azfaro Zid Ilmi | 5027251018 |
+| Gede Satya Putra Aryanta | 5027251012 |
+
+---
+
+## Daftar Isi
+
+- [Tabel Pembagian Interface & Alamat IP](#tabel-pembagian-interface--alamat-ip)
+- [soal 1 - Azfaro](#soal-1--vlsm)
+- [soal 2 - Azfaro](#soal-2--ip-router-dan-ip-forwarding)
+- [soal 3 - Azfaro](#soal-3--routing-statis-dengan-rute-minimal)
+- [soal 4 - Azfaro](#soal-4--nat-dan-dns)
+- [soal 5 - Azfaro](#soal-5--firewall-gendou)
+- [soal 6 - Azfaro](#soal-6--ip-statis-permanen-cabang-kiri-dan-atas)
+- [soal 7 - Satya](#soal-7)
+- [soal 8 - Satya](#soal-8)
+- [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
+- [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
+- [soal 11 - Satya](#soal-11)
+- [soal 12 - Satya](#soal-12)
+- [soal 13 - Satya](#soal-13)
+- [soal 14 - Satya](#soal-14)
+- [soal 15 - Satya](#soal-15)
+- [soal 16 - Satya](#soal-16)
+- [soal 17 - Satya](#soal-17)
+- [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
+- [soal 19 - Azfaro](#soal-19--isolasi-armisael)
+- [soal 20 - Satya](#soal-20)
+
+---
+
+## Tabel Pembagian Interface & Alamat IP
 
 | Item | Nilai |
 |---|---|
@@ -10,6 +43,30 @@ Operation Geofront: VLSM, routing statis, NAT, dan firewall di GNS3.
 | Router pusat | **Gendou** (`eth0` → NAT1, DHCP) |
 | DNS | `192.168.122.1` (didapat Gendou dari DHCP NAT1) |
 
+| Router | eth0 | eth1 | eth2 | eth3 | eth4–eth8 |
+|:---|:---|:---|:---|:---|:---|
+| Gendou | DHCP (NAT1) | 10.82.4.105/30 | 10.82.4.109/30 | 10.82.4.113/30 | .117, .121, .125, .129, .133 (/30) |
+| Yui | 10.82.4.114/30 | 10.82.3.1/25 | 10.82.4.137/30 | 10.82.4.141/30 | eth4 10.82.4.145/30 |
+| Fuyutsuki | 10.82.4.110/30 | 10.82.4.57/29 | 10.82.4.149/30 | 10.82.4.153/30 | |
+| Asuka | 10.82.4.122/30 | 10.82.4.97/30 | 10.82.4.157/30 | 10.82.4.161/30 | |
+| Hikari | 10.82.4.118/30 | 10.82.2.1/24 | 10.82.4.165/30 | | |
+| Shigeru | 10.82.4.134/30 | 10.82.4.81/29 | 10.82.4.169/30 | | |
+| Kaji | 10.82.4.126/30 | 10.82.4.101/30 | | | |
+| Misato | 10.82.4.130/30 | 10.82.4.65/29 | | | |
+| Mari | 10.82.4.138/30 | 10.82.4.33/28 | | | |
+| Rei | 10.82.4.142/30 | 10.82.0.1/23 | | | |
+| Shinji | 10.82.4.146/30 | 10.82.4.1/27 | | | |
+| Maya | 10.82.4.150/30 | 10.82.3.193/27 | | | |
+| Toji | 10.82.4.154/30 | 10.82.4.73/29 | | | |
+| Kaworu | 10.82.4.166/30 | 10.82.3.225/27 | | | |
+| Kensuke | 10.82.4.158/30 | 10.82.3.129/26 | | | |
+| Ritsuko | 10.82.4.162/30 | 10.82.4.49/29 | | | |
+| Makoto | 10.82.4.170/30 | 10.82.4.89/29 | | | |
+
+IP host ada di [soal 6](#soal-6--ip-statis-permanen-cabang-kiri-dan-atas). Perintah yang dijalankan untuk
+tiap soal bagian Azfaro (1–6, 9, 10, 18, 19) ada di folder [scripts/](scripts/).
+
+---
 
 
 ## Soal 1 — VLSM
@@ -81,27 +138,8 @@ Switch-Monolith `10.82.4.80/29`):
 ## Soal 2 — IP router dan IP forwarding
 
 Tiap router punya `/root/<router>.sh` yang memasang IP sesuai tabel, menyalakan interface, dan
-`sysctl -w net.ipv4.ip_forward=1`. Pemetaan interface mengikuti kabel di kanvas:
-
-| Router | eth0 | eth1 | eth2 | eth3 | eth4–eth8 |
-|:---|:---|:---|:---|:---|:---|
-| Gendou | DHCP (NAT1) | 10.82.4.105/30 | 10.82.4.109/30 | 10.82.4.113/30 | .117, .121, .125, .129, .133 (/30) |
-| Yui | 10.82.4.114/30 | 10.82.3.1/25 | 10.82.4.137/30 | 10.82.4.141/30 | eth4 10.82.4.145/30 |
-| Fuyutsuki | 10.82.4.110/30 | 10.82.4.57/29 | 10.82.4.149/30 | 10.82.4.153/30 | |
-| Asuka | 10.82.4.122/30 | 10.82.4.97/30 | 10.82.4.157/30 | 10.82.4.161/30 | |
-| Hikari | 10.82.4.118/30 | 10.82.2.1/24 | 10.82.4.165/30 | | |
-| Shigeru | 10.82.4.134/30 | 10.82.4.81/29 | 10.82.4.169/30 | | |
-| Kaji | 10.82.4.126/30 | 10.82.4.101/30 | | | |
-| Misato | 10.82.4.130/30 | 10.82.4.65/29 | | | |
-| Mari | 10.82.4.138/30 | 10.82.4.33/28 | | | |
-| Rei | 10.82.4.142/30 | 10.82.0.1/23 | | | |
-| Shinji | 10.82.4.146/30 | 10.82.4.1/27 | | | |
-| Maya | 10.82.4.150/30 | 10.82.3.193/27 | | | |
-| Toji | 10.82.4.154/30 | 10.82.4.73/29 | | | |
-| Kaworu | 10.82.4.166/30 | 10.82.3.225/27 | | | |
-| Kensuke | 10.82.4.158/30 | 10.82.3.129/26 | | | |
-| Ritsuko | 10.82.4.162/30 | 10.82.4.49/29 | | | |
-| Makoto | 10.82.4.170/30 | 10.82.4.89/29 | | | |
+`sysctl -w net.ipv4.ip_forward=1`. Pemetaan interface mengikuti kabel di kanvas, lihat
+[Tabel Pembagian Interface & Alamat IP](#tabel-pembagian-interface--alamat-ip).
 
 Hanya Gendou yang terhubung ke NAT1 dan mengambil alamat lewat DHCP. Image debinet tidak membawa
 `dhclient`, jadi Gendou memakai `udhcpc` yang disediakan GNS3 di dalam container
