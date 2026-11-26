@@ -17,7 +17,7 @@
 - [soal 5 - Azfaro](#soal-5--firewall-gendou)
 - [Soal 6 — IP statis permanen](#soal-6--ip-statis-permanen)
 - [Soal 7 — Layanan MAGI](#soal-7--layanan-magi)
-- [soal 8 - Satya](#soal-8)
+- [Soal 8 — Layanan Pen-Pen dan Tokyo3-Core](#soal-8--layanan-pen-pen-dan-tokyo3-core)
 - [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
 - [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
 - [soal 11 - Satya](#soal-11)
@@ -389,6 +389,41 @@ Periksa hasilnya di console Casper.
 
 ```bash
 grep -Fx 'soal7-lilith-casper-5000' /var/log/magi-5000.log
+```
+
+---
+
+## Soal 8 — Layanan Pen-Pen dan Tokyo3-Core
+
+[Skrip listener](configs/host/soal8-listener.sh) menggunakan `netcat-openbsd` untuk menerima
+pesan TCP dan mencatatnya ke `/var/log/soal8-<port>.log`. Opsi `-k` menjaga listener tetap aktif
+setelah koneksi ditutup. TCP `22` diharapkan menolak koneksi karena tidak ada layanan yang
+mendengarkan pada port itu.
+
+| Node | IP | Listener TCP | Skrip di container |
+|:---|:---|:---|:---|
+| Pen-Pen | `10.82.3.194/27` | `80` | `/root/pen-pen.sh` |
+| Tokyo3-Core | `10.82.4.106/30` | `8080` | `/root/tokyo3-core.sh` |
+
+Tokyo3-Core, Maya, dan Gendou semula gagal menyala dengan HTTP `409` dan pesan Docker
+`404 No such container`. Setiap pengganti diuji nyala sebelum sambungannya dikembalikan ke port
+semula. Topologi kembali terverifikasi dengan 60 node dan 59 link. Maya memakai skrip routing
+yang tersimpan, sementara rute uji di Gendou memakai `eth1` ke Switch-Cmd dan `eth2` ke Fuyutsuki.
+
+| Asal | Tujuan | TCP | Hasil aktual di GNS3 |
+|:---|:---|:---|:---|
+| Lilith | Pen-Pen | `80` | `LISTEN`. Pesan `soal8-lilith-pen-pen-80` muncul di `/var/log/soal8-80.log`. |
+| Lilith | Tokyo3-Core | `8080` | `LISTEN`. Pesan `soal8-lilith-tokyo3-core-8080` muncul di `/var/log/soal8-8080.log`. |
+| Lilith | Pen-Pen | `22` | `Connection refused`. |
+| Lilith | Tokyo3-Core | `22` | `Connection refused`. |
+
+Jalankan uji TCP dari console Lilith.
+
+```bash
+printf '%s\n' 'soal8-lilith-pen-pen-80' | nc.openbsd -N -w 3 10.82.3.194 80
+printf '%s\n' 'soal8-lilith-tokyo3-core-8080' | nc.openbsd -N -w 3 10.82.4.106 8080
+nc.openbsd -zvw 3 10.82.3.194 22
+nc.openbsd -zvw 3 10.82.4.106 22
 ```
 
 ---
