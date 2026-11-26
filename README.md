@@ -20,7 +20,7 @@
 - [Soal 8 — Layanan Pen-Pen dan Tokyo3-Core](#soal-8--layanan-pen-pen-dan-tokyo3-core)
 - [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
 - [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
-- [soal 11 - Satya](#soal-11)
+- [Soal 11 — Blokir ping masuk ke Magi-Casper](#soal-11--blokir-ping-masuk-ke-magi-casper)
 - [soal 12 - Satya](#soal-12)
 - [soal 13 - Satya](#soal-13)
 - [soal 14 - Satya](#soal-14)
@@ -598,6 +598,38 @@ sekarang menghitung paket keduanya, sedangkan `nat` Misato kosong:
 ![Spy sesudah](assets/soal10-spy-sesudah.png)
 ![NAT Gendou sesudah](assets/soal10-gendou-nat-sesudah.png)
 ![NAT Misato sesudah](assets/soal10-misato-nat-sesudah.png)
+
+---
+
+## Soal 11 — Blokir ping masuk ke Magi-Casper
+
+[Skrip Soal 11](configs/host/soal11-casper.sh) disimpan sebagai `/root/soal11-casper.sh` di Magi-Casper
+(`10.82.4.58`). Skrip menambahkan aturan `DROP` untuk ICMP IPv4 `echo-request` pada `INPUT`.
+Balasan `echo-reply` untuk ping yang dimulai Casper dan trafik TCP `5000` tetap diproses oleh
+aturan yang sudah ada. Tabel `filter` awal dicadangkan di `/root/soal11-filter.before`.
+Menjalankan skrip dua kali menghasilkan satu aturan untuk Soal 11.
+
+Misato dan Unit-00 semula gagal menyala dengan `404 No such container`. Keduanya dipulihkan
+ke port semula, dan rute uji antara Switch-Cage dan Switch-Terminal diperiksa sebelum penerapan.
+
+| Asal | Tujuan | Trafik | Sebelum | Sesudah |
+|:---|:---|:---|:---|:---|
+| Lilith | Magi-Casper | Ping | 2/2 balasan | 0/2 balasan |
+| Unit-00 | Magi-Casper | Ping | 2/2 balasan | 0/2 balasan |
+| Lilith | Magi-Casper | TCP `5000` | Pesan tercatat | Pesan tercatat |
+| Unit-00 | Magi-Casper | TCP `5000` | Pesan tercatat | Pesan tercatat |
+
+Sesudah penerapan, ping dari Casper ke Lilith (`10.82.4.74`) dan Unit-00 (`10.82.4.68`)
+masing-masing menerima 2/2 balasan. Counter aturan naik dari 0 menjadi **4 paket (336 byte)**.
+Listener tetap berstatus `LISTEN` dan kedua pesan uji sesudah penerapan tercatat di Casper.
+
+Perintah pemeriksaan di console Magi-Casper.
+
+```bash
+iptables -w 5 -L INPUT -n -v -x | grep -F soal11-casper-echo-request
+grep -Fx 'soal11-lilith-sesudah-5000' /var/log/magi-5000.log
+grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
+```
 
 ---
 
