@@ -22,7 +22,7 @@
 - [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
 - [Soal 11 — Blokir ping masuk ke Magi-Casper](#soal-11--blokir-ping-masuk-ke-magi-casper)
 - [soal 12 - Satya](#soal-12)
-- [soal 13 - Satya](#soal-13)
+- [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
 - [soal 14 - Satya](#soal-14)
 - [soal 15 - Satya](#soal-15)
 - [soal 16 - Satya](#soal-16)
@@ -630,6 +630,38 @@ iptables -w 5 -L INPUT -n -v -x | grep -F soal11-casper-echo-request
 grep -Fx 'soal11-lilith-sesudah-5000' /var/log/magi-5000.log
 grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
 ```
+
+---
+
+## Soal 13 — Firewall Magi-Balthasar
+
+[Skrip firewall](configs/host/soal13-balthasar.sh) disimpan di `/root/soal13-balthasar.sh`.
+Chain `SOAL13_BALTHASAR` menerima seluruh trafik dari Casper (`10.82.4.58/32`). Unit-01,
+Unit-02, dan Unit-00 (`10.82.4.66`–`10.82.4.68`) hanya diizinkan ke TCP `5000` dan `5001`.
+TCP dari sumber lain ditolak dengan TCP reset. Trafik masuk lainnya dibuang. Balasan untuk
+koneksi yang dimulai Balthasar diterima melalui pencocokan `ESTABLISHED,RELATED` arah `REPLY`.
+
+Unit-01 dipulihkan ke port aslinya setelah kegagalan Docker `404 No such container`.
+Gendou memperoleh kembali alamat WAN dari NAT1 dan aturan `MASQUERADE` untuk `10.82.0.0/16`
+di `eth0`, sehingga jalur ping keluar tersedia untuk pengujian.
+
+| Asal → tujuan | Trafik | Hasil aktual di GNS3 |
+|:---|:---|:---|
+| Casper → Balthasar | Ping, TCP `5000` dan `5001` | 2/2 balasan ping. Kedua pesan muncul di log MAGI. |
+| Unit-01 → Balthasar | TCP `5000` dan `5001` | Kedua pesan muncul di log MAGI. |
+| Lilith → Balthasar | TCP `5000` dan `5001` | `Connection refused` pada kedua port. |
+| Melchior → Balthasar | TCP `5000` dan `5001` | `Connection refused` pada kedua port. |
+| Balthasar → `8.8.8.8` | Ping | 2/2 balasan sebelum dan sesudah penerapan. |
+
+Pemeriksaan hasil di console Balthasar.
+
+```bash
+iptables -w 5 -L SOAL13_BALTHASAR -nvx
+grep -Fx 'soal13-unit-01-5000' /var/log/magi-5000.log
+grep -Fx 'soal13-unit-01-5001' /var/log/magi-5001.log
+```
+
+Counter penolakan TCP mencatat **4 paket (240 byte)** dari pengujian Lilith dan Melchior.
 
 ---
 
