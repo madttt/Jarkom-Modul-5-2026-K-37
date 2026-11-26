@@ -17,8 +17,11 @@ ensure_rule -i lo -j ACCEPT
 ensure_rule -m conntrack --ctstate ESTABLISHED,RELATED --ctdir REPLY -j ACCEPT
 ensure_rule -s 10.82.4.58/32 -j ACCEPT
 
-for pilot in 10.82.4.66 10.82.4.67 10.82.4.68; do
-    ensure_rule -s "$pilot/32" -p tcp -m multiport --dports 5000,5001 -j ACCEPT
+for pilot in 10.82.4.66 10.82.4.67 10.82.4.68 10.82.3.130; do
+    set -- -s "$pilot/32" -p tcp -m multiport --dports 5000,5001 -j ACCEPT
+    if ! iptables -w 5 -C "$chain" "$@" 2>/dev/null; then
+        iptables -w 5 -I "$chain" 4 "$@"
+    fi
 done
 
 ensure_rule -p tcp -j REJECT --reject-with tcp-reset

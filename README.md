@@ -636,8 +636,9 @@ grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
 ## Soal 13 — Firewall Magi-Balthasar
 
 [Skrip firewall](configs/host/soal13-balthasar.sh) disimpan di `/root/soal13-balthasar.sh`.
-Chain `SOAL13_BALTHASAR` menerima seluruh trafik dari Casper (`10.82.4.58/32`). Unit-01,
-Unit-02, dan Unit-00 (`10.82.4.66`–`10.82.4.68`) hanya diizinkan ke TCP `5000` dan `5001`.
+Chain `SOAL13_BALTHASAR` menerima seluruh trafik dari Casper (`10.82.4.58/32`). Pilot terdiri
+dari Unit-01, Unit-02, Unit-00 (`10.82.4.66`–`10.82.4.68`), dan Sachiel (`10.82.3.130`).
+Keempat alamat Pilot hanya diizinkan ke TCP `5000` dan `5001`.
 TCP dari sumber lain ditolak dengan TCP reset. Trafik masuk lainnya dibuang. Balasan untuk
 koneksi yang dimulai Balthasar diterima melalui pencocokan `ESTABLISHED,RELATED` arah `REPLY`.
 
@@ -662,6 +663,7 @@ grep -Fx 'soal13-unit-01-5001' /var/log/magi-5001.log
 ```
 
 Counter penolakan TCP mencatat **4 paket (240 byte)** dari pengujian Lilith dan Melchior.
+Aturan Sachiel dikonfirmasi di atas aturan penolakan pada chain aktif.
 
 ---
 
