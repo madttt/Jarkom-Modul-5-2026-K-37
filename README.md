@@ -15,8 +15,8 @@
 - [soal 3 - Azfaro](#soal-3--routing-statis-dengan-rute-minimal)
 - [soal 4 - Azfaro](#soal-4--nat-dan-dns)
 - [soal 5 - Azfaro](#soal-5--firewall-gendou)
-- [soal 6 - Azfaro](#soal-6--ip-statis-permanen-cabang-kiri-dan-atas)
-- [soal 7 - Satya](#soal-7)
+- [Soal 6 — IP statis permanen](#soal-6--ip-statis-permanen)
+- [Soal 7 — Layanan MAGI](#soal-7--layanan-magi)
 - [soal 8 - Satya](#soal-8)
 - [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
 - [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
@@ -63,7 +63,7 @@
 | Ritsuko | 10.82.4.162/30 | 10.82.4.49/29 | | | |
 | Makoto | 10.82.4.170/30 | 10.82.4.89/29 | | | |
 
-IP host ada di [soal 6](#soal-6--ip-statis-permanen-cabang-kiri-dan-atas). Perintah yang dijalankan untuk
+IP host ada di [soal 6](#soal-6--ip-statis-permanen). Perintah yang dijalankan untuk
 tiap soal bagian Azfaro (1–6, 9, 10, 18, 19) ada di folder [scripts/](scripts/).
 
 ---
@@ -269,7 +269,7 @@ Koneksi baru dari sisi NAT1 tidak cocok dengan rule mana pun, jadi jatuh ke poli
 
 ---
 
-## Soal 6 — IP statis permanen (cabang kiri dan atas)
+## Soal 6 — IP statis permanen
 
 IP disimpan di `/etc/network/interfaces` (sama dengan *Edit network configuration* di GNS3) dan dijalankan
 oleh `ifup -a` saat container start, jadi bertahan setelah restart. Contoh Unit-01:
@@ -282,6 +282,8 @@ iface eth0 inet static
 	gateway 10.82.4.65
 	up echo nameserver 192.168.122.1 > /etc/resolv.conf
 ```
+
+### Cabang kiri dan atas
 
 | Node | Switch | IP | Netmask | Gateway |
 |:---|:---|:---|:---|:---|
@@ -304,6 +306,90 @@ Unit-01 di-restart (stop lalu start). `ELAPSED` PID 1 menunjukkan container baru
 gateway tetap terpasang dan ping ke gateway berhasil:
 
 ![Unit-01 setelah restart](assets/soal6-unit01.png)
+
+### Cabang kanan dan tengah
+
+Koneksi `eth0` pada 11 host sudah cocok dengan topologi GNS3. Berkas di bawah disiapkan
+untuk `/etc/network/interfaces` sesuai spreadsheet VLSM.
+
+| Node | Switch | IP | Netmask | Gateway |
+|:---|:---|:---|:---|:---|
+| [Pen-Pen](configs/host/Pen-Pen.interfaces) | Switch-Medic | 10.82.3.194 | 255.255.255.224 | 10.82.3.193 |
+| [Medic-Bay](configs/host/Medic-Bay.interfaces) | Switch-Medic | 10.82.3.195 | 255.255.255.224 | 10.82.3.193 |
+| [Magi-casper](configs/host/Magi-casper.interfaces) | Switch-Terminal | 10.82.4.58 | 255.255.255.248 | 10.82.4.57 |
+| [Magi-Balthasar](configs/host/Magi-Balthasar.interfaces) | Switch-Terminal | 10.82.4.59 | 255.255.255.248 | 10.82.4.57 |
+| [Magi-Melchior](configs/host/Magi-Melchior.interfaces) | Switch-Terminal | 10.82.4.60 | 255.255.255.248 | 10.82.4.57 |
+| [Lilith](configs/host/Lilith.interfaces) | Switch-Dogma | 10.82.4.74 | 255.255.255.248 | 10.82.4.73 |
+| [Adam](configs/host/Adam.interfaces) | Switch-Dogma | 10.82.4.75 | 255.255.255.248 | 10.82.4.73 |
+| [Zeruel](configs/host/Zeruel.interfaces) | Switch-Monolith | 10.82.4.82 | 255.255.255.248 | 10.82.4.81 |
+| [Armisael](configs/host/Armisael.interfaces) | Switch-Monolith | 10.82.4.83 | 255.255.255.248 | 10.82.4.81 |
+| [Radar-Array](configs/host/Radar-Array.interfaces) | Switch-Radar | 10.82.4.90 | 255.255.255.248 | 10.82.4.89 |
+| [Tokyo3-Core](configs/host/Tokyo3-Core.interfaces) | Switch-Cmd | 10.82.4.106 | 255.255.255.252 | 10.82.4.105 |
+
+Konfigurasi 11 host disimpan melalui klien GNS3 Desktop saat masing-masing container berhenti.
+Setiap file dibaca ulang dari controller dan dicocokkan dengan konfigurasi yang disiapkan.
+Saat koneksi tulis terputus, hasil pembacaan ulang digunakan untuk menentukan apakah file sudah
+tersimpan sebelum melanjutkan.
+
+**Uji nyala Pen-Pen.** Sesudah node dinyalakan, `ip -br -4 addr show dev eth0` dan
+`ip -4 route show default dev eth0` menghasilkan:
+
+```text
+eth0             UNKNOWN        10.82.3.194/27
+default via 10.82.3.193
+```
+
+Pen-Pen dikembalikan ke kondisi berhenti setelah pengujian. Uji nyala Medic-Bay tertahan karena
+GNS3 mengembalikan HTTP `409` dengan pesan Docker `404 No such container`. File konfigurasi
+Medic-Bay sudah tersimpan dan cocok saat dibaca ulang.
+
+---
+
+## Soal 7 — Layanan MAGI
+
+Soal ini menyiapkan tiga node MAGI untuk menerima pesan TCP dari Lilith. [Skrip MAGI](configs/host/magi.sh)
+memeriksa `iptables` dan `netcat-openbsd`, memasang paket jika diperlukan, lalu membuka listener sesuai
+nama skrip di container. Opsi `-k` mempertahankan listener setelah satu sesi selesai. Pesan masuk
+dicatat di `/var/log/magi-<port>.log`.
+
+| Node | IP | Port TCP | Nama skrip di container |
+|:---|:---|:---|:---|
+| Magi-casper | `10.82.4.58` | `5000` | `/root/magi-casper.sh` |
+| Magi-Balthasar | `10.82.4.59` | `5000`, `5001` | `/root/magi-balthasar.sh` |
+| Magi-Melchior | `10.82.4.60` | `5000` | `/root/magi-melchior.sh` |
+
+Ketiga node semula gagal menyala dengan HTTP `409` dan pesan Docker `404 No such container`.
+Setiap container pengganti diuji nyala dan konfigurasi IP-nya dicocokkan sebelum node lama
+dilepas. Casper, Balthasar, dan Melchior dikembalikan ke port 1, 2, dan 3 `Switch-Terminal`.
+Topologi setelah pemulihan berisi 60 node dan 59 link. Keempat listener berhasil dibuka di GNS3.
+
+Uji awal antar-node MAGI berhasil pada keempat port. Untuk uji antarsubnet, container Lilith, Toji,
+dan Fuyutsuki yang juga mengalami `404 No such container` dipulihkan ke sambungan aslinya.
+Skrip [Fuyutsuki](configs/router/fuyutsuki.sh) dan [Toji](configs/router/toji.sh) yang tersimpan
+dijalankan kembali. Keduanya menunjukkan `net.ipv4.ip_forward = 1`. Rute dari Toji ke Terminal
+melewati `10.82.4.153`, dan rute balik dari Fuyutsuki ke Dogma melewati `10.82.4.154`.
+
+Lilith (`10.82.4.74/29`) mengirim empat pesan lewat gateway `10.82.4.73`. GNS3 menunjukkan
+status `LISTEN` pada setiap port tujuan dan pesan berikut pada log penerima.
+
+| Pengirim | Penerima | TCP | Pesan yang terlihat di log penerima |
+|:---|:---|:---|:---|
+| Lilith | Magi-casper | `5000` | `soal7-lilith-casper-5000` |
+| Lilith | Magi-Balthasar | `5000` | `soal7-lilith-balthasar-5000` |
+| Lilith | Magi-Balthasar | `5001` | `soal7-lilith-balthasar-5001` |
+| Lilith | Magi-Melchior | `5000` | `soal7-lilith-melchior-5000` |
+
+Contoh uji di console Lilith untuk Casper.
+
+```bash
+printf '%s\n' 'soal7-lilith-casper-5000' | nc.openbsd -N -w 3 10.82.4.58 5000
+```
+
+Periksa hasilnya di console Casper.
+
+```bash
+grep -Fx 'soal7-lilith-casper-5000' /var/log/magi-5000.log
+```
 
 ---
 
