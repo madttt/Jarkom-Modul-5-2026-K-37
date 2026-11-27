@@ -10,16 +10,17 @@
 ## Daftar Isi
 
 - [Tabel Pembagian Interface & Alamat IP](#tabel-pembagian-interface--alamat-ip)
-- [soal 1 - Azfaro](#soal-1--vlsm)
-- [soal 2 - Azfaro](#soal-2--ip-router-dan-ip-forwarding)
-- [soal 3 - Azfaro](#soal-3--routing-statis-dengan-rute-minimal)
-- [soal 4 - Azfaro](#soal-4--nat-dan-dns)
-- [soal 5 - Azfaro](#soal-5--firewall-gendou)
+- [Topologi Jaringan](#topologi-jaringan)
+- [Soal 1 — VLSM](#soal-1--vlsm)
+- [Soal 2 — IP router dan IP forwarding](#soal-2--ip-router-dan-ip-forwarding)
+- [Soal 3 — Routing statis dengan rute minimal](#soal-3--routing-statis-dengan-rute-minimal)
+- [Soal 4 — NAT dan DNS](#soal-4--nat-dan-dns)
+- [Soal 5 — Firewall Gendou](#soal-5--firewall-gendou)
 - [Soal 6 — IP statis permanen](#soal-6--ip-statis-permanen)
 - [Soal 7 — Layanan MAGI](#soal-7--layanan-magi)
 - [Soal 8 — Layanan Pen-Pen dan Tokyo3-Core](#soal-8--layanan-pen-pen-dan-tokyo3-core)
-- [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
-- [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
+- [Soal 9 — Sabotase routing di Shigeru](#soal-9--sabotase-routing-di-shigeru)
+- [Soal 10 — Sabotase NAT di Misato dan Gendou](#soal-10--sabotase-nat-di-misato-dan-gendou)
 - [Soal 11 — Blokir ping masuk ke Magi-Casper](#soal-11--blokir-ping-masuk-ke-magi-casper)
 - [Soal 12 — Pemulihan firewall Magi-Casper](#soal-12--pemulihan-firewall-magi-casper)
 - [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
@@ -27,8 +28,8 @@
 - [Soal 15 — Pembatasan ping Tokyo3-Core](#soal-15--pembatasan-ping-tokyo3-core)
 - [Soal 16 — Log koneksi Dummy-Plug](#soal-16--log-koneksi-dummy-plug)
 - [Soal 17 — DNAT Casper ke Pen-Pen](#soal-17--dnat-casper-ke-pen-pen)
-- [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
-- [soal 19 - Azfaro](#soal-19--isolasi-armisael)
+- [Soal 18 — Gerbang Monolith dan Radar (Shigeru)](#soal-18--gerbang-monolith-dan-radar-shigeru)
+- [Soal 19 — Isolasi Armisael](#soal-19--isolasi-armisael)
 - [Soal 20 — Cadangan dan pemulihan GNS3](#soal-20--cadangan-dan-pemulihan-gns3)
 
 ---
@@ -63,8 +64,17 @@
 | Ritsuko | 10.82.4.162/30 | 10.82.4.49/29 | | | |
 | Makoto | 10.82.4.170/30 | 10.82.4.89/29 | | | |
 
-IP host ada di [soal 6](#soal-6--ip-statis-permanen). Perintah yang dijalankan untuk
-tiap soal bagian Azfaro (1–6, 9, 10, 18, 19) ada di folder [scripts/](scripts/).
+IP host ada di [Soal 6](#soal-6--ip-statis-permanen). Skrip konfigurasi tiap node dan tahap pengujian tersimpan di folder [configs/](configs/) dan [scripts/](scripts/).
+
+---
+
+## Topologi Jaringan
+
+Topologi proyek `K-37-MODUL-5` terdiri atas **60 node dan 59 link**: 1 node `NAT1`, 17 Ethernet switch (`Switch-*`), 17 router Docker (`Gendou` hingga `Makoto`), dan 25 host Docker berbasis image `ardhptr21/debinet:latest`. Router pusat `Gendou` terhubung ke `NAT1` pada `eth0` sebagai satu-satunya titik keluar ke internet, sementara cabang di bawahnya terhubung melalui link `/30` dan switch LAN masing-masing.
+
+![Topologi GNS3](assets/topologi-gns3.png)
+
+Arsip proyek portabel final tersedia di [K-37-MODUL-5.gns3project](K-37-MODUL-5.gns3project).
 
 ---
 
@@ -694,9 +704,13 @@ di `eth0`, sehingga jalur ping keluar tersedia untuk pengujian.
 |:---|:---|:---|
 | Casper → Balthasar | Ping, TCP `5000` dan `5001` | 2/2 balasan ping. Kedua pesan muncul di log MAGI. |
 | Unit-01 → Balthasar | TCP `5000` dan `5001` | Kedua pesan muncul di log MAGI. |
+| Unit-02 → Balthasar | TCP `5000` dan `5001` | `soal13-unit-02-5000` dan `soal13-unit-02-5001` muncul di log MAGI. |
+| Sachiel → Balthasar | TCP `5000` dan `5001` | `soal13-sachiel-5000` dan `soal13-sachiel-5001` muncul di log MAGI. |
 | Lilith → Balthasar | TCP `5000` dan `5001` | `Connection refused` pada kedua port. |
 | Melchior → Balthasar | TCP `5000` dan `5001` | `Connection refused` pada kedua port. |
 | Balthasar → `8.8.8.8` | Ping | 2/2 balasan sebelum dan sesudah penerapan. |
+
+`Kensuke` (`10.82.4.158/30`, gateway `Switch-Bunker` `10.82.3.129/26`) beserta `Sachiel` (`10.82.3.130/26`) dan `Unit-02` (`10.82.4.67/29`) juga dipulihkan ke port masing-masing dengan rute `10.82.3.128/26` dan `10.82.4.156/30` di `Gendou` dan `Asuka`, sehingga akses pilot lintas subnet dari `Switch-Bunker` dan `Switch-Cage` ke `Magi-Balthasar` terverifikasi langsung di GNS3.
 
 Pemeriksaan hasil di console Balthasar.
 
@@ -729,15 +743,22 @@ menunjukkan **23:45 WIB**, hasil pengujian GNS3 adalah sebagai berikut.
 
 | Asal → Pen-Pen | Ping | TCP `80` |
 |:---|:---|:---|
-| Unit-01 | 0/1 balasan | Timeout |
-| Lilith | 0/1 balasan | Timeout |
+| Unit-01 (23:45 WIB) | 0/1 balasan | Timeout |
+| Lilith (23:45 WIB) | 0/1 balasan | Timeout |
+| Adam (14:46 WIB) | 0/2 balasan | Timeout |
 | Spy | 0/1 balasan | Timeout |
+| Entry-Plug | 0/2 balasan | Timeout |
 | Magi-Casper | 1/1 balasan | Pesan `soal14-magi-casper` tercatat di `/var/log/soal8-80.log` |
+
+`Adam` (`10.82.4.75/29`) dan `Entry-Plug` (`10.82.4.50/29`) dipulihkan ke port aslinya dan diuji langsung saat jam container `Pen-Pen` menunjukkan `14:46:02 WIB` (`07:46:02 UTC`, di luar rentang Staf Geofront `17.00–23.00 WIB`). Baik `Adam` maupun `Entry-Plug` (selalu ditolak) menerima 0/2 balasan ping dan timeout pada TCP `80`.
 
 Uji tambahan mencakup 240 evaluasi dari aturan yang terbaca di GNS3 pada batas jam dan hari
 kerja serta akhir pekan. Uji paket Netfilter dengan jendela waktu yang digeser di namespace
 terisolasi mengonfirmasi Pilot dan Staf dapat mengakses pada jam buka, Pilot ditolak pada
-akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses.
+akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses. Setelah pemulihan
+container Adam dan Entry-Plug, uji langsung pada `14:46 WIB` (`07:46 UTC`, di luar jendela
+Staf Geofront `17.00–23.00 WIB`) juga menunjukkan Adam (`10.82.4.75`) dan Entry-Plug (`10.82.4.50`)
+mendapat `0/2` balasan ping serta timeout pada TCP `80`.
 
 ---
 
@@ -901,6 +922,21 @@ Log listener Lilith hanya menerima pesan dari Zeruel, tidak ada pesan dari Armis
 
 ![Log Lilith](assets/soal19-lilith-log.png)
 ![Counter Shigeru](assets/soal19-shigeru-counter.png)
+
+**Pemulihan container Armisael.** Container pengganti `Armisael` memakai alamat MAC aktif `02:42:fa:6a:2a:00` pada `10.82.4.83/29`. [Skrip isolasi Soal 19](configs/router/soal19-isolasi.sh) dipasang sebagai `/root/soal19-isolasi.sh` pada `Shigeru` dan `Zeruel`, dan nilai `ARMISAEL_MAC` pada [shigeru.sh](configs/router/shigeru.sh) serta [zeruel.sh](configs/host/zeruel.sh) disinkronkan ke `02:42:fa:6a:2a:00`.
+
+| Pengujian pasca-pemulihan | Sebelum isolasi | Sesudah isolasi |
+|:---|:---|:---|
+| Armisael → `10.82.4.81`, `10.82.4.82`, `10.82.4.74`, `8.8.8.8` (ping) | 1/1 balasan di keempat tujuan | 0/1 balasan di keempat tujuan (100% loss) |
+| Armisael → `10.82.4.82:9000`, `10.82.4.74:9000`, `8.8.8.8:53` (TCP) | Terhubung di ketiga tujuan | Timeout di ketiga tujuan; pesan ke Lilith tidak masuk log |
+| Zeruel → Lilith (`10.82.4.74`) & `8.8.8.8` | — | 2/2 balasan ping, TCP `53` terhubung, `soal19-zeruel-di-lilith` tercatat di Lilith |
+| Zeruel → Armisael (`10.82.4.83`) | — | 0/1 balasan ping |
+| Magi-Casper → Zeruel / Armisael | — | 1/1 balasan ke Zeruel, 0/1 balasan ke Armisael |
+
+Counter aturan `soal19-armisael` mencatat kecocokan MAC `02:42:fa:6a:2a:00` pada `Shigeru` (`INPUT` 1 paket / 84 byte, `FORWARD` 6 paket / 408 byte, plus 1 paket / 84 byte tujuan `10.82.4.83`) dan `Zeruel` (`INPUT` 3 paket / 204 byte, `OUTPUT` 1 paket / 84 byte tujuan `10.82.4.83`).
+
+---
+
 ## Soal 20 — Cadangan dan pemulihan GNS3
 
 [Skrip cadangan](scripts/soal20-backup.sh) disimpan sebagai `/root/soal20-backup.sh` pada Fuyutsuki,
@@ -910,7 +946,8 @@ rute IPv4 utama, alamat interface, status penerusan IPv4, dan checksum SHA-256.
 Pengujian GNS3 memuat salinan state ke namespace jaringan terisolasi pada setiap node, mereset
 aturan dan rute salinan, lalu memulihkannya dengan `iptables-restore` dan `ip route replace`.
 Aturan, policy, dan rute hasil pulih dibandingkan dengan cadangan. Counter paket dikecualikan
-dari perbandingan aturan.
+dari perbandingan aturan. Verifikasi ulang setelah pemulihan node Soal 5–19 memastikan state aktif
+ketiga node masih cocok dengan cadangan masing-masing.
 
 | Node | Aturan dan rute sebelum reset | Sesudah reset | Sesudah pemulihan |
 |:---|:---|:---|:---|
@@ -924,18 +961,29 @@ dari perbandingan aturan.
 /root/soal20-backup.sh verify /root/soal20-backup
 ```
 
-Sesudah uji, state aktif pada ketiga node masih cocok dengan cadangan. Pesan `soal20-casper-pen-pen`
-diterima Pen-Pen pada TCP `80`, dan `soal20-lilith-tokyo` diterima Tokyo3-Core pada TCP `8080`.
+Sesudah uji namespace terisolasi awal, state aktif pada ketiga node masih cocok dengan cadangan. Pesan
+`soal20-casper-pen-pen` diterima Pen-Pen pada TCP `80`, dan `soal20-lilith-tokyo` diterima Tokyo3-Core
+pada TCP `8080`.
 
-[Unduh ekspor portabel K-37-MODUL-5](K-37-MODUL-5.gns3project). Arsip terverifikasi memuat
-60 node, 59 link, skrip konfigurasi, dan ketiga cadangan Soal 20. Riwayat shell disimpan dalam
-arsip privat. Salinan untuk GitHub memuat data proyek yang diperlukan untuk praktikum.
+[Unduh ekspor portabel K-37-MODUL-5](K-37-MODUL-5.gns3project). Arsip final (`221.390` byte) terverifikasi
+memuat **60 node, 59 link**, skrip konfigurasi persisten tiap tahap, serta ketiga cadangan Soal 20. Riwayat
+shell (35 berkas `.bash_history`) dipisahkan ke arsip privat sehingga salinan untuk GitHub hanya memuat
+konfigurasi yang diperlukan untuk praktikum.
 
-Sesudah ekspor, 20 node Docker yang sebelumnya aktif dinyalakan kembali dan dicocokkan
-dengan checkpoint alamat, rute, aturan firewall, dan listener. Uji TCP dari ujung ke ujung
-berhasil untuk Unit-00 → Casper `5000`, Casper → IP Zeruel `9000` yang diterima Pen-Pen,
-serta Lilith → Tokyo3-Core `8080`. Ketiga pesan uji tercatat di log node penerima.
+Sesudah ekspor final, seluruh **29 node Docker** (11 router: Gendou, Fuyutsuki, Toji, Maya, Misato, Kaji,
+Asuka, Ritsuko, Shigeru, Makoto, Kensuke; dan 18 host: Magi-casper, Magi-Balthasar, Magi-Melchior, Pen-Pen,
+Tokyo3-Core, Lilith, Unit-00, Unit-01, Unit-02, Spy, Dummy-Plug, Zeruel, Medic-Bay, Radar-Array, Armisael,
+Sachiel, Adam, Entry-Plug) dinyalakan kembali secara berurutan dan dicocokkan dengan checkpoint alamat,
+rute, aturan firewall, sysctl, dan listener. Smoke test ujung ke ujung pasca-pemulihan lulus untuk:
+
+- **Soal 5**: Policy `INPUT`/`FORWARD` `DROP` pada `Gendou` aktif; `Lilith → 8.8.8.8` menerima 2/2 balasan ping.
+- **Soal 7–8 & 12**: `Unit-00 → Magi-casper` TCP `5000` tercatat (`final-smoke-unit-casper`) sementara ping ditolak (0/2 balasan).
+- **Soal 13**: `Sachiel` dan `Unit-02` terhubung ke `Magi-Balthasar` TCP `5000` dan `5001` (`final-smoke-sachiel-*`, `final-smoke-unit02-*`), sedangkan `Lilith → Magi-Balthasar:5000` ditolak (`Connection refused`).
+- **Soal 14**: `Entry-Plug → Pen-Pen` ditolak (0/2 ping, TCP `80` timeout), sedangkan `Magi-casper → Pen-Pen:80` tercatat (`final-smoke-casper-pen-pen`).
+- **Soal 15–16**: `Lilith → Tokyo3-Core:8080` tercatat (`final-smoke-lilith-tokyo`); `Dummy-Plug → Tokyo3-Core:22` ditolak (`Connection refused`) dan tercatat di `/var/log/soal16-scan.log` dengan prefix `SCAN-NERV`.
+- **Soal 17**: `Magi-casper → 10.82.4.82:9000` dialihkan Fuyutsuki ke `Pen-Pen` (`/var/log/soal17-9000.log` mencatat `final-smoke-casper-dnat`).
+- **Soal 18–19**: `Magi-casper → Zeruel` menerima 2/2 balasan ping, `Lilith → Zeruel` menerima 0/2 balasan, `Armisael` menerima 0/1 balasan ke gateway, `Zeruel`, `Lilith`, dan `8.8.8.8`, sedangkan `Zeruel → Lilith` menerima 2/2 balasan.
 
 ```text
-SHA-256  8eed75be17c46b65e3a80679eb67c9ba49be968b41109340c869b76dc8f3b144
+SHA-256  b45717c2a5248490d332a303ea2a0d34a87bfc866dfe99a09d9d1f5afb84e8e4
 ```
