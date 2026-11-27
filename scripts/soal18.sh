@@ -1,5 +1,5 @@
 # Soal 18 - Gerbang Monolith + Radar (rule lengkap di configs/router/shigeru.sh).
-ZERUEL=10.82.4.8x                # isi IP Zeruel (cek: ip -br a di Zeruel)
+ZERUEL=10.82.4.82
 
 # [Shigeru]
 bash /root/shigeru.sh
