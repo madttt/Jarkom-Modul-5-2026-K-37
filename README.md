@@ -21,7 +21,7 @@
 - [soal 9 - Azfaro](#soal-9--sabotase-routing-di-shigeru)
 - [soal 10 - Azfaro](#soal-10--sabotase-nat-di-misato-dan-gendou)
 - [Soal 11 — Blokir ping masuk ke Magi-Casper](#soal-11--blokir-ping-masuk-ke-magi-casper)
-- [soal 12 - Satya](#soal-12)
+- [Soal 12 — Pemulihan firewall Magi-Casper](#soal-12--pemulihan-firewall-magi-casper)
 - [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
 - [Soal 14 — Jadwal akses Pen-Pen](#soal-14--jadwal-akses-pen-pen)
 - [Soal 15 — Pembatasan ping Tokyo3-Core](#soal-15--pembatasan-ping-tokyo3-core)
@@ -630,6 +630,30 @@ iptables -w 5 -L INPUT -n -v -x | grep -F soal11-casper-echo-request
 grep -Fx 'soal11-lilith-sesudah-5000' /var/log/magi-5000.log
 grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
 ```
+
+---
+
+## Soal 12 — Pemulihan firewall Magi-Casper
+
+[Skrip pemulihan](configs/host/soal12-casper.sh) menjaga policy `INPUT DROP` dan memakai
+chain `SOAL12_CASPER` untuk mengizinkan loopback, balasan `ESTABLISHED,RELATED`, serta koneksi
+baru pada TCP `5000`. ICMP `echo-request` masuk dibuang sebelum aturan conntrack diperiksa.
+
+Simulasi di namespace terisolasi memulai uji dengan policy `INPUT DROP` tanpa pengecualian
+yang diperlukan. TCP `5000` dari sisi Unit-00 dan balasan ping keluar mulai berfungsi setelah
+skrip dijalankan. Ping masuk tetap tanpa balasan, policy tetap `DROP`, dan menjalankan skrip
+dua kali menghasilkan satu jump ke chain pemulihan.
+
+Pada proyek GNS3, Magi-Casper masih memakai `INPUT ACCEPT` dari Soal 11 dan file
+`/root/break_fw.sh` belum ditemukan. Konfigurasi akhir diterapkan langsung lewat
+`/root/soal12-casper.sh`. Kondisi gagal diuji di namespace terisolasi seperti dijelaskan di atas.
+
+| Verifikasi di GNS3 | Hasil |
+|:---|:---|
+| Policy `INPUT` Magi-Casper | `DROP`, dengan satu jump ke `SOAL12_CASPER` |
+| Unit-00 → Magi-Casper, TCP `5000` | Pesan `soal12-unit-00-casper-5000` tercatat di `/var/log/magi-5000.log` |
+| Unit-00 → Magi-Casper, ping | 0/2 balasan. Counter `DROP` mencatat 2 paket. |
+| Magi-Casper → Unit-00, ping | 2/2 balasan |
 
 ---
 
