@@ -363,6 +363,8 @@ eth0             UNKNOWN        10.82.3.194/27
 default via 10.82.3.193
 ```
 
+![Pen-Pen setelah restart](assets/soal6-pen-pen.png)
+
 Pen-Pen dikembalikan ke kondisi berhenti setelah pengujian awal. Medic-Bay sempat gagal menyala
 dengan HTTP `409` dan pesan Docker `404 No such container`. Container pengganti memakai konfigurasi
 semula dan disambungkan kembali ke port 2 Switch-Medic. Setelah restart, `eth0` tetap memakai
@@ -417,6 +419,9 @@ Periksa hasilnya di console Casper.
 grep -Fx 'soal7-lilith-casper-5000' /var/log/magi-5000.log
 ```
 
+![Lilith mengirim ke 4 port MAGI](assets/soal7-lilith-kirim.png)
+![Listener dan log Magi-Balthasar](assets/soal7-magi-listen.png)
+
 ---
 
 ## Soal 8 — Layanan Pen-Pen dan Tokyo3-Core
@@ -451,6 +456,10 @@ printf '%s\n' 'soal8-lilith-tokyo3-core-8080' | nc.openbsd -N -w 3 10.82.4.106 8
 nc.openbsd -zvw 3 10.82.3.194 22
 nc.openbsd -zvw 3 10.82.4.106 22
 ```
+
+![Uji TCP dari Lilith ke Pen-Pen dan Tokyo3-Core](assets/soal8-lilith-uji.png)
+![Listener dan log Pen-Pen](assets/soal8-pen-pen.png)
+![Listener dan log Tokyo3-Core](assets/soal8-tokyo3-core.png)
 
 ---
 
@@ -657,6 +666,9 @@ grep -Fx 'soal11-lilith-sesudah-5000' /var/log/magi-5000.log
 grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
 ```
 
+![Unit-00 ping ditolak namun TCP 5000 lolos](assets/soal11-unit00-uji.png)
+![Magi-Casper tetap bisa ping keluar dan mencatat log](assets/soal11-casper-keluar.png)
+
 ---
 
 ## Soal 12 — Pemulihan firewall Magi-Casper
@@ -684,6 +696,8 @@ ulang dengan trafik antarnode.
 
 Uji ulang setelah reproduksi di GNS3 mencatat pesan `soal12-reverify-unit-casper` pada Casper.
 Ping Unit-00 ke Casper mendapat 0/1 balasan dan arah sebaliknya mendapat 1/1 balasan.
+
+![Aturan iptables dan counter SOAL12_CASPER](assets/soal12-casper-iptables.png)
 
 ---
 
@@ -723,6 +737,10 @@ grep -Fx 'soal13-unit-01-5001' /var/log/magi-5001.log
 Counter penolakan TCP mencatat **4 paket (240 byte)** dari pengujian Lilith dan Melchior.
 Aturan Sachiel dikonfirmasi di atas aturan penolakan pada chain aktif.
 
+![Sachiel (Pilot) diizinkan ke TCP 5000 dan 5001](assets/soal13-pilot-lolos.png)
+![Lilith (non-Pilot) ditolak ke TCP 5000 dan 5001](assets/soal13-nonpilot-tolak.png)
+![Chain dan counter SOAL13_BALTHASAR serta log MAGI](assets/soal13-balthasar-iptables.png)
+
 ---
 
 ## Soal 14 — Jadwal akses Pen-Pen
@@ -755,10 +773,11 @@ menunjukkan **23:45 WIB**, hasil pengujian GNS3 adalah sebagai berikut.
 Uji tambahan mencakup 240 evaluasi dari aturan yang terbaca di GNS3 pada batas jam dan hari
 kerja serta akhir pekan. Uji paket Netfilter dengan jendela waktu yang digeser di namespace
 terisolasi mengonfirmasi Pilot dan Staf dapat mengakses pada jam buka, Pilot ditolak pada
-akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses. Setelah pemulihan
-container Adam dan Entry-Plug, uji langsung pada `14:46 WIB` (`07:46 UTC`, di luar jendela
-Staf Geofront `17.00–23.00 WIB`) juga menunjukkan Adam (`10.82.4.75`) dan Entry-Plug (`10.82.4.50`)
-mendapat `0/2` balasan ping serta timeout pada TCP `80`.
+akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses.
+
+![Entry-Plug ditolak oleh Pen-Pen](assets/soal14-entry-plug-tolak.png)
+![Magi-Casper tetap diizinkan mengakses Pen-Pen](assets/soal14-casper-lolos.png)
+![Jam sistem dan counter chain SOAL14_PENPEN](assets/soal14-pen-pen-iptables.png)
 
 ---
 
@@ -779,6 +798,9 @@ Counter akhir di Tokyo3-Core menunjukkan **13 paket diterima dan 10 paket dibuan
 ```bash
 iptables -w 5 -L SOAL15_ICMP -nvx
 ```
+
+![Uji rate-limit ping dari Lilith ke Tokyo3-Core](assets/soal15-lilith-ping.png)
+![Counter chain SOAL15_ICMP di Tokyo3-Core](assets/soal15-tokyo3-counter.png)
 
 ---
 
@@ -807,6 +829,9 @@ grep -F 'SCAN-NERV' /var/log/soal16-scan.log
 iptables -w 5 -L SOAL16_SCAN -nvx
 ```
 
+![Dummy-Plug uji port terblokir vs port diizinkan](assets/soal16-dummy-plug.png)
+![Counter SOAL16_SCAN dan log SCAN-NERV di Tokyo3-Core](assets/soal16-tokyo3-log.png)
+
 ---
 
 ## Soal 17 — DNAT Casper ke Pen-Pen
@@ -831,6 +856,10 @@ Shigeru dan Zeruel dipulihkan ke port semula dan jalur ICMP melalui Gendou diver
 # Console Fuyutsuki
 iptables -w 5 -t nat -L PREROUTING -nvx | grep -F soal17-casper-zeruel
 ```
+
+![Magi-Casper mengirim TCP 9000 ke IP Zeruel](assets/soal17-casper-kirim.png)
+![Counter DNAT PREROUTING di Fuyutsuki](assets/soal17-fuyutsuki-dnat.png)
+![Listener dan log TCP 9000 di Pen-Pen](assets/soal17-pen-pen-log.png)
 
 ---
 
@@ -960,6 +989,10 @@ ketiga node masih cocok dengan cadangan masing-masing.
 /root/soal20-backup.sh backup /root/soal20-backup
 /root/soal20-backup.sh verify /root/soal20-backup
 ```
+
+![Verifikasi cadangan Soal 20 di Fuyutsuki](assets/soal20-fuyutsuki.png)
+![Verifikasi cadangan Soal 20 di Pen-Pen](assets/soal20-pen-pen.png)
+![Verifikasi cadangan Soal 20 di Tokyo3-Core](assets/soal20-tokyo3-core.png)
 
 Sesudah uji namespace terisolasi awal, state aktif pada ketiga node masih cocok dengan cadangan. Pesan
 `soal20-casper-pen-pen` diterima Pen-Pen pada TCP `80`, dan `soal20-lilith-tokyo` diterima Tokyo3-Core
