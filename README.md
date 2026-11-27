@@ -353,9 +353,11 @@ eth0             UNKNOWN        10.82.3.194/27
 default via 10.82.3.193
 ```
 
-Pen-Pen dikembalikan ke kondisi berhenti setelah pengujian. Uji nyala Medic-Bay tertahan karena
-GNS3 mengembalikan HTTP `409` dengan pesan Docker `404 No such container`. File konfigurasi
-Medic-Bay sudah tersimpan dan cocok saat dibaca ulang.
+Pen-Pen dikembalikan ke kondisi berhenti setelah pengujian awal. Medic-Bay sempat gagal menyala
+dengan HTTP `409` dan pesan Docker `404 No such container`. Container pengganti memakai konfigurasi
+semula dan disambungkan kembali ke port 2 Switch-Medic. Setelah restart, `eth0` tetap memakai
+`10.82.3.195/27` dan rute default tetap melalui `10.82.3.193`. Ping dari Medic-Bay ke gateway dan
+ke Lilith (`10.82.4.74`) masing-masing menerima 2/2 balasan.
 
 ---
 
