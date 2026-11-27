@@ -29,7 +29,7 @@ echo "nameserver $DNS" > /etc/resolv.conf
 GENDOU_SIDE=eth0              # interface Shigeru yang menghadap Gendou
 TERMINAL=10.82.4.56/29        # subnet Switch-Terminal (MAGI)
 ARMISAEL=10.82.4.83
-ARMISAEL_MAC=02:42:e4:de:74:00
+ARMISAEL_MAC=02:42:fa:6a:2a:00
 
 # tulis ulang dari awal supaya aman dijalankan ulang
 iptables -P INPUT ACCEPT
