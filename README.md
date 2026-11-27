@@ -25,7 +25,7 @@
 - [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
 - [Soal 14 — Jadwal akses Pen-Pen](#soal-14--jadwal-akses-pen-pen)
 - [Soal 15 — Pembatasan ping Tokyo3-Core](#soal-15--pembatasan-ping-tokyo3-core)
-- [soal 16 - Satya](#soal-16)
+- [Soal 16 — Log koneksi Dummy-Plug](#soal-16--log-koneksi-dummy-plug)
 - [soal 17 - Satya](#soal-17)
 - [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
 - [soal 19 - Azfaro](#soal-19--isolasi-armisael)
@@ -713,6 +713,33 @@ Counter akhir di Tokyo3-Core menunjukkan **13 paket diterima dan 10 paket dibuan
 
 ```bash
 iptables -w 5 -L SOAL15_ICMP -nvx
+```
+
+---
+
+## Soal 16 — Log koneksi Dummy-Plug
+
+[Skrip Tokyo3-Core](configs/host/soal16-tokyo3-core.sh) mencatat paket SYN dari Dummy-Plug
+(`10.82.4.51/32`) menuju TCP `22`, `23`, atau `3306` dengan prefix `SCAN-NERV`, lalu
+mengirim TCP reset. NFLOG mengirim paket ke `ulogd` melalui grup `16016`. Hasilnya disimpan di
+`/var/log/soal16-scan.log`. [Dokumentasi Netfilter](https://workshop.netfilter.org/2015/wiki/images/5/51/Netfilter-logging.pdf)
+
+Skrip disimpan di `/root/soal16-tokyo3-core.sh` dan menyiapkan listener TCP `80` untuk uji ini.
+Listener TCP `8080` dari Soal 8 juga digunakan. Dummy-Plug, Asuka, dan Ritsuko dipulihkan ke
+port semula sebelum rute pergi-pulang antara Switch-Lab dan Switch-Cmd diverifikasi.
+
+| Asal → Tokyo3-Core (`10.82.4.106`) | TCP | Hasil aktual di GNS3 |
+|:---|:---|:---|
+| Dummy-Plug | `22`, `23`, `3306` | Ketiga koneksi ditolak. Log memuat `SCAN-NERV`, `SRC=10.82.4.51`, dan ketiga nilai `DPT`. |
+| Dummy-Plug | `80` | Pesan `soal16-dummy-80` tercatat di `/var/log/soal16-80.log`. |
+| Dummy-Plug | `8080` | Pesan `soal16-dummy-8080` tercatat di `/var/log/soal8-8080.log`. |
+
+Counter mencatat masing-masing tiga paket pada aturan NFLOG dan `REJECT`.
+
+```bash
+# Console Tokyo3-Core
+grep -F 'SCAN-NERV' /var/log/soal16-scan.log
+iptables -w 5 -L SOAL16_SCAN -nvx
 ```
 
 ---
