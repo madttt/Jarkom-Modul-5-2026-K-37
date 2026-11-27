@@ -29,7 +29,7 @@
 - [Soal 17 — DNAT Casper ke Pen-Pen](#soal-17--dnat-casper-ke-pen-pen)
 - [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
 - [soal 19 - Azfaro](#soal-19--isolasi-armisael)
-- [soal 20 - Satya](#soal-20)
+- [Soal 20 — Cadangan dan pemulihan GNS3](#soal-20--cadangan-dan-pemulihan-gns3)
 
 ---
 
@@ -867,3 +867,41 @@ Log listener Lilith hanya menerima pesan dari Zeruel, tidak ada pesan dari Armis
 
 ![Log Lilith](assets/soal19-lilith-log.png)
 ![Counter Shigeru](assets/soal19-shigeru-counter.png)
+## Soal 20 — Cadangan dan pemulihan GNS3
+
+[Skrip cadangan](scripts/soal20-backup.sh) disimpan sebagai `/root/soal20-backup.sh` pada Fuyutsuki,
+Pen-Pen, dan Tokyo3-Core. Direktori `/root/soal20-backup` berisi hasil `iptables-save`, tabel
+rute IPv4 utama, alamat interface, status penerusan IPv4, dan checksum SHA-256.
+
+Pengujian GNS3 memuat salinan state ke namespace jaringan terisolasi pada setiap node, mereset
+aturan dan rute salinan, lalu memulihkannya dengan `iptables-restore` dan `ip route replace`.
+Aturan, policy, dan rute hasil pulih dibandingkan dengan cadangan. Counter paket dikecualikan
+dari perbandingan aturan.
+
+| Node | Aturan dan rute sebelum reset | Sesudah reset | Sesudah pemulihan |
+|:---|:---|:---|:---|
+| Fuyutsuki (router) | 1 aturan, 7 rute | 0 aturan, 0 rute | 1 aturan, 7 rute, cocok dengan cadangan |
+| Pen-Pen | 18 aturan, 2 rute | 0 aturan, 0 rute | 18 aturan, 2 rute, cocok dengan cadangan |
+| Tokyo3-Core | 6 aturan, 2 rute | 0 aturan, 0 rute | 6 aturan, 2 rute, cocok dengan cadangan |
+
+```bash
+# Jalankan pada masing-masing node. Perintah backup membuat direktori baru.
+/root/soal20-backup.sh backup /root/soal20-backup
+/root/soal20-backup.sh verify /root/soal20-backup
+```
+
+Sesudah uji, state aktif pada ketiga node masih cocok dengan cadangan. Pesan `soal20-casper-pen-pen`
+diterima Pen-Pen pada TCP `80`, dan `soal20-lilith-tokyo` diterima Tokyo3-Core pada TCP `8080`.
+
+[Unduh ekspor portabel K-37-MODUL-5](K-37-MODUL-5.gns3project). Arsip terverifikasi memuat
+60 node, 59 link, skrip konfigurasi, dan ketiga cadangan Soal 20. Riwayat shell disimpan dalam
+arsip privat. Salinan untuk GitHub memuat data proyek yang diperlukan untuk praktikum.
+
+Sesudah ekspor, 20 node Docker yang sebelumnya aktif dinyalakan kembali dan dicocokkan
+dengan checkpoint alamat, rute, aturan firewall, dan listener. Uji TCP dari ujung ke ujung
+berhasil untuk Unit-00 → Casper `5000`, Casper → IP Zeruel `9000` yang diterima Pen-Pen,
+serta Lilith → Tokyo3-Core `8080`. Ketiga pesan uji tercatat di log node penerima.
+
+```text
+SHA-256  8eed75be17c46b65e3a80679eb67c9ba49be968b41109340c869b76dc8f3b144
+```
