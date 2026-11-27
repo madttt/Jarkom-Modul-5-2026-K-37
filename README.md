@@ -269,6 +269,18 @@ Koneksi baru dari sisi NAT1 tidak cocok dengan rule mana pun, jadi jatuh ke poli
 ![Armisael ping 8.8.8.8](assets/soal5-armisael-ping.png)
 ![Counter](assets/soal5-gendou-counter.png)
 
+Setelah pergantian container, [skrip pemulihan firewall](configs/router/soal5-gendou.sh)
+dipasang di `/root/soal5-gendou.sh`. Skrip menerapkan kembali policy `INPUT DROP` dan
+`FORWARD DROP`. Izin dengan sumber jaringan internal dicocokkan pada interface selain WAN.
+Aturan `MASQUERADE` yang ada cocok saat dibandingkan sebelum dan sesudah pemulihan.
+
+| Uji ulang | Hasil yang tercatat |
+|:---|:---|
+| Lilith → `8.8.8.8` | 2/2 balasan ping |
+| Lilith → Gendou (`10.82.4.109`) | 2/2 balasan ping |
+| Lilith → Tokyo3-Core TCP `8080` | Pesan `soal5-lilith-ke-tokyo` muncul di log TCP |
+| Koneksi baru dari sisi WAN dalam namespace terisolasi | Timeout untuk trafik ke Gendou dan trafik yang hendak diteruskan. Counter `DROP` masing-masing mencatat 2 paket. |
+
 ---
 
 ## Soal 6 — IP statis permanen
