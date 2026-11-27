@@ -71,6 +71,8 @@ tiap soal bagian Azfaro (1–6, 9, 10, 18, 19) ada di folder [scripts/](scripts/
 
 ## Soal 1 — VLSM
 
+Spreadsheet Kelompok 37 tersedia di [VLSM Modul 5](Kelompok%2037%20-%20VLSM%20Modul%205.xlsx).
+
 Aturan hitung:
 
 - kebutuhan IP = jumlah host + 1 gateway (link antar-router = 2 IP);
