@@ -26,7 +26,7 @@
 - [Soal 14 — Jadwal akses Pen-Pen](#soal-14--jadwal-akses-pen-pen)
 - [Soal 15 — Pembatasan ping Tokyo3-Core](#soal-15--pembatasan-ping-tokyo3-core)
 - [Soal 16 — Log koneksi Dummy-Plug](#soal-16--log-koneksi-dummy-plug)
-- [soal 17 - Satya](#soal-17)
+- [Soal 17 — DNAT Casper ke Pen-Pen](#soal-17--dnat-casper-ke-pen-pen)
 - [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
 - [soal 19 - Azfaro](#soal-19--isolasi-armisael)
 - [soal 20 - Satya](#soal-20)
@@ -740,6 +740,31 @@ Counter mencatat masing-masing tiga paket pada aturan NFLOG dan `REJECT`.
 # Console Tokyo3-Core
 grep -F 'SCAN-NERV' /var/log/soal16-scan.log
 iptables -w 5 -L SOAL16_SCAN -nvx
+```
+
+---
+
+## Soal 17 — DNAT Casper ke Pen-Pen
+
+Fuyutsuki berada di antara Switch-Terminal dan Gendou. [Skrip DNAT](configs/router/soal17-fuyutsuki.sh)
+memilih TCP `9000` yang masuk di `eth1` dari Casper (`10.82.4.58`) ke Zeruel (`10.82.4.82`),
+lalu mengubah tujuan menjadi Pen-Pen (`10.82.3.194:9000`). [Skrip listener](configs/host/soal17-pen-pen.sh)
+menyimpan pesan di `/var/log/soal17-9000.log`. Keduanya disimpan di `/root` pada node masing-masing.
+Balasan Pen-Pen kembali melalui Maya dan Fuyutsuki, lalu conntrack mengembalikan IP sumber balasan
+menjadi IP Zeruel.
+
+Shigeru dan Zeruel dipulihkan ke port semula dan jalur ICMP melalui Gendou diverifikasi sebelum uji.
+
+| Pengujian | Hasil aktual di GNS3 |
+|:---|:---|
+| Ping Casper → Zeruel | 2/2 balasan. Capture pada Zeruel memuat dua ICMP echo-request. |
+| TCP Casper → `10.82.4.82:9000` | Terhubung. Capture di Casper menunjukkan SYN-ACK dari `10.82.4.82:9000`. |
+| Log dan capture di penerima | Pen-Pen mencatat `soal17-casper-via-zeruel`. Capture Zeruel tidak memuat TCP `9000` pada uji itu. |
+| Counter DNAT di Fuyutsuki | Naik dari 0 menjadi **1 paket (60 byte)**. |
+
+```bash
+# Console Fuyutsuki
+iptables -w 5 -t nat -L PREROUTING -nvx | grep -F soal17-casper-zeruel
 ```
 
 ---
