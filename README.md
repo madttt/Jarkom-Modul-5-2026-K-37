@@ -24,7 +24,7 @@
 - [soal 12 - Satya](#soal-12)
 - [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
 - [Soal 14 — Jadwal akses Pen-Pen](#soal-14--jadwal-akses-pen-pen)
-- [soal 15 - Satya](#soal-15)
+- [Soal 15 — Pembatasan ping Tokyo3-Core](#soal-15--pembatasan-ping-tokyo3-core)
 - [soal 16 - Satya](#soal-16)
 - [soal 17 - Satya](#soal-17)
 - [soal 18 - Azfaro](#soal-18--gerbang-monolith-dan-radar-shigeru)
@@ -694,6 +694,26 @@ Uji tambahan mencakup 240 evaluasi dari aturan yang terbaca di GNS3 pada batas j
 kerja serta akhir pekan. Uji paket Netfilter dengan jendela waktu yang digeser di namespace
 terisolasi mengonfirmasi Pilot dan Staf dapat mengakses pada jam buka, Pilot ditolak pada
 akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses.
+
+---
+
+## Soal 15 — Pembatasan ping Tokyo3-Core
+
+[Skrip pembatasan](configs/host/soal15-tokyo3-core.sh) disimpan di `/root/soal15-tokyo3-core.sh`.
+Chain `SOAL15_ICMP` menerima ICMP IPv4 `echo-request` sampai rata-rata lima paket per detik
+dengan kapasitas awal satu paket. Echo-request yang melebihi batas dibuang.
+
+| Asal → tujuan | Pengujian | Hasil aktual di GNS3 |
+|:---|:---|:---|
+| Lilith → Tokyo3-Core | 20 ping dengan jeda 0,1 detik | 10/20 balasan. Counter `DROP` mencatat 10 paket. |
+| Lilith → Tokyo3-Core | 3 ping dengan jeda 3 detik | 3/3 balasan. Counter `DROP` tetap 10 paket. |
+| Lilith → Tokyo3-Core | TCP `8080` | Pesan `soal15-lilith-8080` tercatat di `/var/log/soal8-8080.log`. |
+
+Counter akhir di Tokyo3-Core menunjukkan **13 paket diterima dan 10 paket dibuang**.
+
+```bash
+iptables -w 5 -L SOAL15_ICMP -nvx
+```
 
 ---
 
