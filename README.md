@@ -23,7 +23,7 @@
 - [Soal 11 — Blokir ping masuk ke Magi-Casper](#soal-11--blokir-ping-masuk-ke-magi-casper)
 - [soal 12 - Satya](#soal-12)
 - [Soal 13 — Firewall Magi-Balthasar](#soal-13--firewall-magi-balthasar)
-- [soal 14 - Satya](#soal-14)
+- [Soal 14 — Jadwal akses Pen-Pen](#soal-14--jadwal-akses-pen-pen)
 - [soal 15 - Satya](#soal-15)
 - [soal 16 - Satya](#soal-16)
 - [soal 17 - Satya](#soal-17)
@@ -664,6 +664,36 @@ grep -Fx 'soal13-unit-01-5001' /var/log/magi-5001.log
 
 Counter penolakan TCP mencatat **4 paket (240 byte)** dari pengujian Lilith dan Melchior.
 Aturan Sachiel dikonfirmasi di atas aturan penolakan pada chain aktif.
+
+---
+
+## Soal 14 — Jadwal akses Pen-Pen
+
+[Skrip jadwal](configs/host/soal14-pen-pen.sh) disimpan sebagai `/root/soal14-pen-pen.sh`.
+Pen-Pen (`10.82.3.194`) menerapkan jadwal ke ICMP `echo-request` dan TCP `80` melalui
+chain `SOAL14_PENPEN`. Batas akhir jam bersifat eksklusif. Aturan `iptables -m time` memakai UTC.
+
+| Kelompok | Sumber | Akses dalam WIB | Rentang aturan UTC |
+|:---|:---|:---|:---|
+| Pilot | Unit-00, Unit-01, Unit-02, Sachiel | Senin–Jumat 08.00–16.00 | 01:00:00–08:59:59 |
+| Staf Geofront | Lilith, Adam | Setiap hari 17.00–23.00 | 10:00:00–15:59:59 |
+| Terduga Dummy System | Entry-Plug, Dummy-Plug, Spy | Selalu ditolak | Semua waktu |
+| Lainnya | Semua sumber lainnya | Selalu diterima | Semua waktu |
+
+Kaji dan Spy dipulihkan ke port semula untuk uji dari Switch-Intel. Saat jam Pen-Pen
+menunjukkan **23:45 WIB**, hasil pengujian GNS3 adalah sebagai berikut.
+
+| Asal → Pen-Pen | Ping | TCP `80` |
+|:---|:---|:---|
+| Unit-01 | 0/1 balasan | Timeout |
+| Lilith | 0/1 balasan | Timeout |
+| Spy | 0/1 balasan | Timeout |
+| Magi-Casper | 1/1 balasan | Pesan `soal14-magi-casper` tercatat di `/var/log/soal8-80.log` |
+
+Uji tambahan mencakup 240 evaluasi dari aturan yang terbaca di GNS3 pada batas jam dan hari
+kerja serta akhir pekan. Uji paket Netfilter dengan jendela waktu yang digeser di namespace
+terisolasi mengonfirmasi Pilot dan Staf dapat mengakses pada jam buka, Pilot ditolak pada
+akhir pekan, Spy tetap ditolak, dan kelompok lainnya tetap dapat mengakses.
 
 ---
 
