@@ -842,6 +842,20 @@ Dari dalam zona tetap bebas keluar:
 ![Zeruel keluar](assets/soal18-zeruel-keluar.png)
 ![iptables Shigeru](assets/soal18-shigeru-iptables.png)
 
+Untuk pemulihan setelah penggantian container, [skrip Soal 18](configs/router/soal18-shigeru.sh)
+disimpan sebagai `/root/soal18-shigeru.sh`. Chain `SOAL18_GERBANG` dipanggil untuk trafik yang
+masuk dari `eth0`. Chain menerima balasan koneksi arah `REPLY`, menerima ICMP `echo-request`
+dari Terminal, dan membuang trafik masuk lainnya. Makoto dan Radar-Array dipulihkan ke port semula.
+
+| Uji ulang di GNS3 | Monolith (Zeruel) | Radar (Radar-Array) |
+|:---|:---|:---|
+| Casper → zona, ping | 2/2 balasan | 2/2 balasan |
+| Lilith → zona, ping | 0/2 balasan | 0/2 balasan |
+| Lilith → zona, TCP `9000` | Timeout | Timeout |
+| Trafik dari dalam zona | Tokyo3-Core mencatat `soal18-monolith-tokyo` pada TCP `8080`. | Ping ke Lilith mendapat 2/2 balasan. |
+
+Counter Shigeru mencatat 5 paket balasan, 4 echo-request dari Terminal, dan 8 paket dibuang.
+
 ---
 
 ## Soal 19 — Isolasi Armisael
