@@ -655,14 +655,15 @@ grep -Fx 'soal11-unit-00-sesudah-5000' /var/log/magi-5000.log
 chain `SOAL12_CASPER` untuk mengizinkan loopback, balasan `ESTABLISHED,RELATED`, serta koneksi
 baru pada TCP `5000`. ICMP `echo-request` masuk dibuang sebelum aturan conntrack diperiksa.
 
-Simulasi di namespace terisolasi memulai uji dengan policy `INPUT DROP` tanpa pengecualian
-yang diperlukan. TCP `5000` dari sisi Unit-00 dan balasan ping keluar mulai berfungsi setelah
-skrip dijalankan. Ping masuk tetap tanpa balasan, policy tetap `DROP`, dan menjalankan skrip
-dua kali menghasilkan satu jump ke chain pemulihan.
+Gangguan direproduksi dalam namespace jaringan terisolasi pada Magi-Casper di GNS3. Awalnya TCP
+`5000` dan ping keluar berhasil. Setelah policy `INPUT` pada salinan diubah ke `DROP`, koneksi
+TCP timeout dan ping keluar kehilangan semua balasan. Skrip memulihkan keduanya, mempertahankan
+policy `DROP`, dan tetap membuang ping masuk. Dua kali eksekusi menghasilkan satu jump ke chain
+pemulihan. Snapshot aturan dan rute aktif di luar namespace cocok sebelum dan sesudah uji.
 
-Pada proyek GNS3, Magi-Casper masih memakai `INPUT ACCEPT` dari Soal 11 dan file
-`/root/break_fw.sh` belum ditemukan. Konfigurasi akhir diterapkan langsung lewat
-`/root/soal12-casper.sh`. Kondisi gagal diuji di namespace terisolasi seperti dijelaskan di atas.
+File `/root/break_fw.sh` belum ditemukan. Reproduksi memakai perubahan policy langsung pada
+salinan terisolasi. Konfigurasi akhir proyek diterapkan lewat `/root/soal12-casper.sh` dan diuji
+ulang dengan trafik antarnode.
 
 | Verifikasi di GNS3 | Hasil |
 |:---|:---|
@@ -670,6 +671,9 @@ Pada proyek GNS3, Magi-Casper masih memakai `INPUT ACCEPT` dari Soal 11 dan file
 | Unit-00 → Magi-Casper, TCP `5000` | Pesan `soal12-unit-00-casper-5000` tercatat di `/var/log/magi-5000.log` |
 | Unit-00 → Magi-Casper, ping | 0/2 balasan. Counter `DROP` mencatat 2 paket. |
 | Magi-Casper → Unit-00, ping | 2/2 balasan |
+
+Uji ulang setelah reproduksi di GNS3 mencatat pesan `soal12-reverify-unit-casper` pada Casper.
+Ping Unit-00 ke Casper mendapat 0/1 balasan dan arah sebaliknya mendapat 1/1 balasan.
 
 ---
 
